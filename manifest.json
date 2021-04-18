@@ -1,0 +1,7 @@
+{
+  "name": "Nuage Palette",
+  "id": "965553831935440447",
+  "api": "1.0.0",
+	"main": "dist/code.js",
+	"ui": "dist/ui.html"
+}
