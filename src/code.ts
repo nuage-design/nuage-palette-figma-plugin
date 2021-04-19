@@ -1,33 +1,61 @@
 import { dispatch, handleEvent } from './codeMessageHandler';
 // import { hexToHSL as hexToHSLString}  from './colorConverter';
 
-interface Size {
-	width: number,
-	height: number,
-}
-
 figma.showUI(__html__);
 
-
-// function hexToRgb(hex: string): RGB {
-// 	var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-// 	return result
-// 		? {
-// 				r: parseInt(result[1], 16) / 255,
-// 				g: parseInt(result[2], 16) / 255,
-// 				b: parseInt(result[3], 16) / 255,
-// 			}
-// 		: null;
-// }
 
 // function rgbToHex(color: RGB): string {
 // 	return "#" + ((1 << 24) + (color.r << 16) + (color.g << 8) + color.b).toString(16).slice(1);
 // }
 
+interface Size {
+	width: number,
+	height: number,
+}
+
 interface HSL {
 	h: number,
 	s: number,
 	l: number,
+}
+
+interface PaletteRGB {
+	50:  RGB,
+	100: RGB,
+	200: RGB,
+	300: RGB,
+	400: RGB,
+	500: RGB,
+	600: RGB,
+	700: RGB,
+	800: RGB,
+	900: RGB,
+}
+
+interface PaletteHSL {
+	50: string,
+	100: string,
+	200: string,
+	300: string,
+	400: string,
+	500: string,
+	600: string,
+	700: string,
+	800: string,
+	900: string,
+};
+
+interface PaletteHex extends PaletteHSL { };
+
+function hexToRgb(hex: string): RGB {
+	var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+	return result
+		? {
+				r: parseInt(result[1], 16) / 255,
+				g: parseInt(result[2], 16) / 255,
+				b: parseInt(result[3], 16) / 255,
+			}
+		: null;
 }
 
 function hexToHSL(H: string): HSL | null {
@@ -91,26 +119,12 @@ function hslToHex(hsl: HSL): string {
   return `#${f(0)}${f(8)}${f(4)}`;
 }
 
-interface PaletteRGB {
-	50: string,
-	100: string,
-	200: string,
-	300: string,
-	400: string,
-	500: string,
-	600: string,
-	700: string,
-	800: string,
-	900: string,
-}
-
-interface PaletteHSL extends PaletteRGB { };
 
 function createPalette(hsl: HSL) {
 	const lightness = (100 - hsl.l) / 5;
-	const darkness = hsl.l / 7.5;
+	const darkness = hsl.l / 7;
 
-	const paletteRGB: PaletteRGB = {
+	const paletteHex: PaletteHex = {
 		50: hslToHex({h: hsl.h, s: hsl.s, l: Math.round(hsl.l + lightness * 4.5)}),
 		100: hslToHex({h: hsl.h, s: hsl.s, l: Math.round(hsl.l + lightness * 4)}),
 		200: hslToHex({h: hsl.h, s: hsl.s, l: Math.round(hsl.l + lightness * 3)}),
@@ -121,6 +135,19 @@ function createPalette(hsl: HSL) {
 		700: hslToHex({h: hsl.h, s: hsl.s, l: Math.round(hsl.l - darkness * 2)}),
 		800: hslToHex({h: hsl.h, s: hsl.s, l: Math.round(hsl.l - darkness * 3)}),
 		900: hslToHex({h: hsl.h, s: hsl.s, l: Math.round(hsl.l - darkness * 4)}),
+	}
+
+	const paletteRGB: PaletteRGB = {
+		50: hexToRgb(paletteHex['50']),
+		100: hexToRgb(paletteHex['100']),
+		200: hexToRgb(paletteHex['200']),
+		300: hexToRgb(paletteHex['300']),
+		400: hexToRgb(paletteHex['400']),
+		500: hexToRgb(paletteHex['500']),
+		600: hexToRgb(paletteHex['600']),
+		700: hexToRgb(paletteHex['700']),
+		800: hexToRgb(paletteHex['800']),
+		900: hexToRgb(paletteHex['900']),
 	}
 
 	return paletteRGB;
@@ -137,11 +164,16 @@ handleEvent('createColorBlock', (hex: string) => {
 
 	const paletteRGB: PaletteRGB = createPalette(hsl);
 
-	const rect = figma.createRectangle();
-	rect.name = rect.id;
+	const nodes: SceneNode[] = [];
+	let i: number = 0;
+	for (let key in paletteRGB) {
+		const rect = figma.createRectangle();
+		rect.name = `primary-${key}`;
+		rect.y = i++ * size.height;
 
-	rect.resize(size.width, size.height);
-	// rect.fills = [{ type: 'SOLID', color }];
+		rect.resize(size.width, size.height);
+		rect.fills = [{ type: 'SOLID', color: paletteRGB[key] }];
+	}
 
 	// This shows how the main code can send messages to the UI code.
 	dispatch('colorBlockCreated', paletteRGB);
