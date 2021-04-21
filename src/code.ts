@@ -25,6 +25,9 @@ interface PaletteRGB {
 	700: RGB,
 	800: RGB,
 	900: RGB,
+	outline: RGB,
+	gradient_default: [RGB, RGB],
+	gradient_hover: [RGB, RGB],
 }
 interface PaletteHSL {
 	50: string,
@@ -141,6 +144,9 @@ function createPalette(hsl: HSL) {
 		700: hexToRgb(paletteHex['700']),
 		800: hexToRgb(paletteHex['800']),
 		900: hexToRgb(paletteHex['900']),
+		outline: hexToRgb(paletteHex['200']),
+		gradient_default: [hexToRgb(paletteHex['600']), hexToRgb(paletteHex['400'])],
+		gradient_hover: [hexToRgb(paletteHex['500']), hexToRgb(paletteHex['300'])],
 	}
 
 	return paletteRGB;
@@ -160,15 +166,46 @@ handleEvent('createColorBlock', (hexObj: Object) => {
 		let j: number = 0;
 
 		for (let key in paletteRGB) {
-			const paint: SolidPaint = { type: 'SOLID', color: paletteRGB[key] };
+			let paint: GradientPaint | SolidPaint;
+			if (/^gradient/.test(key)) {
+				const gradientStops: ColorStop[] = [
+					{
+						position: 0, color: {
+							r: key == 'gradient_default' ? paletteRGB['600'].r : paletteRGB['500'].r,
+							g: key == 'gradient_default' ? paletteRGB['600'].g : paletteRGB['500'].g,
+							b: key == 'gradient_default' ? paletteRGB['600'].b : paletteRGB['500'].b,
+							a: 1
+						}
+					},
+					{
+						position: 1, color: {
+							r: key == 'gradient_default' ? paletteRGB['400'].r : paletteRGB['300'].r,
+							g: key == 'gradient_default' ? paletteRGB['400'].g : paletteRGB['300'].g,
+							b: key == 'gradient_default' ? paletteRGB['400'].b : paletteRGB['300'].b,
+							a: 1
+						}
+					},
+				]
+				const gradientTransform: Transform = (key == 'gradient_default')
+					? [[1, 0, 0], [0, 1, 0]]
+					: [[-1, 0, 1], [0, -1, 1]]
+				paint = { type: 'GRADIENT_LINEAR', gradientStops, gradientTransform }
+			} else {
+				paint = {
+					type: 'SOLID',
+					color: paletteRGB[key],
+					opacity: key == 'outline' ? 0.5 : 1
+				};
+			}
+
 			const rect = figma.createRectangle();
-			const style = styles.find((style) => style.name === `${COLORS[i]}/${key}`);
+			let style = styles.find((style) => style.name === `${COLORS[i]}/${key}`);
 
 			if (style) style.paints = [paint];
 			else {
-				const colorStyle: PaintStyle = figma.createPaintStyle();
-				colorStyle.name = `${COLORS[i]}/${key}`
-				colorStyle.paints = [paint];
+				style = figma.createPaintStyle();
+				style.name = `${COLORS[i]}/${key}`
+				style.paints = [paint];
 			}
 
 			rect.name = `${COLORS[i]}-${key}`;
@@ -176,10 +213,9 @@ handleEvent('createColorBlock', (hexObj: Object) => {
 			rect.x = i * size.width;
 
 			rect.resize(size.width, size.height);
-			rect.fills = [{ type: 'SOLID', color: paletteRGB[key] }];
+			rect.fillStyleId = style.id;
 		}
 	}
 	
-
 	dispatch('colorBlockCreated');
 });
