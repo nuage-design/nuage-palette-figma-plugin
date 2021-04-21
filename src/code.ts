@@ -152,12 +152,25 @@ handleEvent('createColorBlock', (hexObj: Object) => {
 		height: 60,
 	}
 
+	const styles: PaintStyle[] = figma.getLocalPaintStyles();
+	console.log(styles);
+
 	for (let i = 0; i < COLORS.length; i++) {
 		let paletteRGB: PaletteRGB = createPalette(hexToHSL(hexObj[COLORS[i]]));
 		let j: number = 0;
 
 		for (let key in paletteRGB) {
+			const paint: SolidPaint = { type: 'SOLID', color: paletteRGB[key] };
 			const rect = figma.createRectangle();
+			const style = styles.find((style) => style.name === `${COLORS[i]}/${key}`);
+
+			if (style) style.paints = [paint];
+			else {
+				const colorStyle: PaintStyle = figma.createPaintStyle();
+				colorStyle.name = `${COLORS[i]}/${key}`
+				colorStyle.paints = [paint];
+			}
+
 			rect.name = `${COLORS[i]}-${key}`;
 			rect.y = j++ * size.height;
 			rect.x = i * size.width;
