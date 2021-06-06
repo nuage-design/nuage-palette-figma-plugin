@@ -20,49 +20,49 @@
 </template>
 
 <script>
-import { dispatch, handleEvent } from "./uiMessageHandler";
+import { dispatch, handleEvent } from './uiMessageHandler'
 // import { hexToRGB, hexToHSL, RGBToHex } from "./colorConverter";
 
 // Add these lines to import the interactive figma-ui components as needed.
-import "./figma-ui/js/selectMenu";
-import "./figma-ui/js/iconInput";
-import "./figma-ui/js/disclosure";
+import './figma-ui/js/selectMenu'
+import './figma-ui/js/iconInput'
+import './figma-ui/js/disclosure'
 
 export default {
   data() {
     return {
       colors: {
-        primary: "#7345F0",
-        success: "#4DC74B",
-        info: "#0AA5FF",
-        warning: "#FF9A0C",
-        danger: "#FF4248",
-        dark: "#2C2837",
+        primary: '#0303FC',
+        success: '#4DC74B',
+        info: '#0AA5FF',
+        warning: '#FF9A0C',
+        danger: '#FF4248',
+        dark: '#2C2837',
       },
-    };
+    }
   },
   computed: {},
   mounted() {
     // Add these lines to initialize the interactive figma-ui components as needed.
-    window.selectMenu.init();
-    window.iconInput.init();
-    window.disclosure.init();
+    window.selectMenu.init()
+    window.iconInput.init()
+    window.disclosure.init()
 
     // The following shows how messages from the main code can be handled in the UI code.
-    handleEvent("colorBlockCreated", (palette) => {
-      console.log(palette);
-    });
+    handleEvent('colorBlockCreated', (palette) => {
+      console.log(palette)
+    })
   },
   methods: {
     createColorBlock() {
-      dispatch("createColorBlock", this.colors);
+      dispatch('createColorBlock', this.colors)
     },
   },
-};
+}
 </script>
 
 <style lang='scss'>
-@import "./figma-ui/figma-plugin-ds";
+@import './figma-ui/figma-plugin-ds';
 
 label {
   display: inline-block;
@@ -75,7 +75,7 @@ label {
   margin: 0 5px;
 }
 
-input[type="color"] {
+input[type='color'] {
   position: relative;
   border: none;
   width: 20px;
